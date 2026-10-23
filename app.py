@@ -73,8 +73,8 @@ log = logging.getLogger("voice_loop")
 # large-v3 chosen over -turbo: child speech has higher WER, accuracy > speed.
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "whisper-large-v3")
 
-# Arabic-focused model; perfect for bilingual tutor (English + Arabic).
-# Fallback options: "openai/gpt-oss-20b" or "qwen/qwen3.8-27b"
+# Arabic-focused model on Groq free tier; perfect for bilingual tutor (English + Arabic).
+# Override via LLM_MODEL env var if needed.
 LLM_MODEL = os.getenv("LLM_MODEL", "allam-2-7b")
 
 REQUEST_TIMEOUT_S = 30          # per-request timeout for Groq calls
