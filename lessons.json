@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "version": "1.0",
+    "created_for": "Ticket #2 — Lesson Setup (pre-baked lessons at build time)",
+    "source": "Sample lessons written manually. The source PDFs referenced in TICKETS.md (Math_EN_P4_T1.pdf, Arabic_language_prim4_t1.pdf) are not present in this repo, so content was authored from typical Egyptian Primary 4 Term 1 Math and Arabic curricula for an 8-year-old. If the real PDFs are added later, extract TOC + lesson text with pdfplumber and merge here; expect Arabic PDF text to need manual review (extraction often reverses/garbles Arabic glyphs).",
+    "encoding_note": "Arabic text is stored as literal UTF-8 (not \\uXXXX escapes) so it displays correctly in editors and renders right-to-left in the app. No garbled/reversed characters.",
+    "how_to_add_lessons": "Append a new object to the lessons array with id '{subject}_{number}' (e.g. math_003, arabic_003), title, subject ('Math' or 'Arabic'), content (200-400 words, age-8 simple language), and difficulty ('easy' | 'medium' | 'hard'). Keep ids unique and sequential."
+  },
+  "lessons": [
+    {
+      "id": "math_001",
+      "title": "Big Numbers and Place Value",
+      "subject": "Math",
+      "content": "A big number is a number with many digits. A digit is one of the symbols 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9 that we use to write numbers. When a number has four digits, like 3,456, we say it goes up to the thousands.\n\nKey words:\n- Digit: one single symbol used to write a number, like 7.\n- Place value: what a digit is worth because of where it sits in the number.\n- Ones: the first place on the right.\n- Tens: the second place. Each ten is worth ten ones.\n- Hundreds: the third place. Each hundred is worth ten tens.\n- Thousands: the fourth place. Each thousand is worth ten hundreds.\n\nExample: the number 3,456 has:\n- 6 ones (worth 6)\n- 5 tens (worth 50)\n- 4 hundreds (worth 400)\n- 3 thousands (worth 3,000)\n\nSo 3,456 = 3,000 + 400 + 50 + 6.\n\nReading big numbers: we read 3,456 as \"three thousand four hundred fifty-six.\"\n\nComparing big numbers: always start from the left. 4,210 is bigger than 3,999 because 4 thousands is more than 3 thousands. If the thousands are the same, compare the hundreds, then the tens, then the ones.\n\nPractice idea: pick any four-digit number and say what each digit is worth. Try 5,208. The 2 sits in the hundreds place, so it is worth 200. What is the 5 worth? What is the 8 worth? And why does the 0 still matter even though it is worth zero?",
+      "difficulty": "easy"
+    },
+    {
+      "id": "math_002",
+      "title": "Adding Big Numbers",
+      "subject": "Math",
+      "content": "Addition means putting groups together to find the total, which we call the sum. You already know how to add small numbers like 5 + 3 = 8. Now let us add bigger numbers, like 234 + 145.\n\nAdding without regrouping:\nWhen every column adds up to less than 10, we just add each column on its own. Always start from the ones place on the right!\n\nExample: 234 + 145\n- Ones: 4 + 5 = 9\n- Tens: 3 + 4 = 7\n- Hundreds: 2 + 1 = 3\nSo 234 + 145 = 379.\n\nAdding with regrouping (carrying):\nSometimes a column adds up to 10 or more. Then we regroup, which grown-ups also call carrying.\n\nExample: 458 + 367\n- Ones: 8 + 7 = 15. We write the 5 in the ones place and carry 1 ten over to the tens column.\n- Tens: 5 + 6 = 11, plus the 1 we carried makes 12. We write 2 in the tens place and carry 1 hundred.\n- Hundreds: 4 + 3 = 7, plus the 1 we carried makes 8.\nSo 458 + 367 = 825.\n\nKey words:\n- Sum: the answer we get when we add.\n- Regroup (carry): when a column makes 10 or more, we move 1 to the next place on the left.\n\nTips: line the numbers up so ones are under ones and tens are under tens. Start adding from the right side. Check your answer by estimating first: 458 is about 500 and 367 is about 400, so the answer should be about 900. Our answer 825 is close to 900, so it makes sense!",
+      "difficulty": "medium"
+    },
+    {
+      "id": "arabic_001",
+      "title": "حروف الهجاء (الحروف الهجائية)",
+      "subject": "Arabic",
+      "content": "حروف الهجاء هي حروف اللغة العربية، وعددها ثمانية وعشرون حرفًا. بها نكتب الكلمات ونقرؤها، وهي مثل الطوب الذي نبني به البيت: كلُّ كلمة في لغتنا الجميلة مبنية من هذه الحروف.\n\nالحروف الهجائية بالترتيب هي:\nا، ب، ت، ث، ج، ح، خ، د، ذ، ر، ز، س، ش، ص، ض، ط، ظ، ع، غ، ف، ق، ك، ل، م، ن، هـ، و، ي.\n\nنقسم الحروف أحيانًا إلى مجموعات صغيرة لتسهيل حفظها:\n- المجموعة الأولى: ا، ب، ت، ث — مثل: أسد، بطة، تفاحة، ثعلب.\n- المجموعة الثانية: ج، ح، خ — مثل: جمل، حصان، خروف.\n- المجموعة الثالثة: د، ذ — مثل: دب، ذرة.\n- المجموعة الرابعة: ر، ز — مثل: رجل، زرافة.\n- المجموعة الخامسة: س، ش — مثل: سمكة، شمس.\n- المجموعة السادسة: ص، ض — مثل: صقر، ضفدع.\n- المجموعة السابعة: ط، ظ — مثل: طفل، ظرف.\n- المجموعة الثامنة: ع، غ — مثل: عصفور، غيمة.\n- المجموعة التاسعة: ف، ق — مثل: فيل، قمر.\n- المجموعة العاشرة: ك، ل، م، ن — مثل: كتاب، ليمون، موز، نجمة.\n- المجموعة الأخيرة: هـ، و، ي — مثل: هلال، وردة، يد.\n\nكلمات مهمة:\n- حرف: رمز نكتبه وننطقه، مثل حرف الباء.\n- كلمة: مجموعة حروف لها معنى، مثل كلمة «قلم».\n- الهجاء: أن ننطق الكلمة حرفًا حرفًا، مثل: ق - ل - م.\n\nنشاط صغير: انطقي اسمك حرفًا حرفًا! اسم «مريم» نهجّيه هكذا: م - ر - ي - م. والآن جرّبي أنتِ مع اسمك واسم صديقتك. أيُّ حرف يبدأ به اسمك؟ وأيُّ مجموعة ينتمي إليها هذا الحرف؟",
+      "difficulty": "easy"
+    },
+    {
+      "id": "arabic_002",
+      "title": "حركات الحروف (الفتحة والضمة والكسرة)",
+      "subject": "Arabic",
+      "content": "الحركات علامات صغيرة نضعها فوق الحرف أو تحته لتساعدنا على قراءته قراءة صحيحة. بدون الحركات قد نقرأ الكلمة خطأ! والحركات ثلاث: الفتحة والضمة والكسرة.\n\nأولًا: الفتحة: خط صغير مائل فوق الحرف. تجعل الحرف يُنطق بصوت «أَ» قصير.\nمثال: حرف الباء مع الفتحة يصبح «بَ» مثل كلمة «بَاب». وحرف الكاف مع الفتحة «كَ» مثل «كَلب». وحرف الميم مع الفتحة «مَ» مثل «مَدرسة».\n\nثانيًا: الضمة: علامة فوق الحرف تشبه واوًا صغيرة. تجعل الحرف يُنطق بصوت «أُ» قصير.\nمثال: حرف الباء مع الضمة يصبح «بُ» مثل كلمة «بُومة». وحرف السين مع الضمة «سُ» مثل «سُكر». وحرف النون مع الضمة «نُ» مثل «نُور».\n\nثالثًا: الكسرة: خط صغير مائل تحت الحرف. تجعل الحرف يُنطق بصوت «إِ» قصير.\nمثال: حرف الباء مع الكسرة يصبح «بِ» مثل كلمة «بِنت». وحرف الشين مع الكسرة «شِ» مثل «شِجرة». وحرف القاف مع الكسرة «قِ» مثل «قِطار».\n\nكيف تساعدنا الحركات؟\nانظري إلى الحروف نفسها مع حركات مختلفة:\n- كَتَبَ: يعني أن شخصًا كتب شيئًا.\n- كُتُب: جمع كلمة كتاب.\nالحروف نفسها، لكن الحركات غيّرت المعنى تمامًا!\n\nكلمات مهمة:\n- حركة: علامة فوق الحرف أو تحته توضّح نطقه.\n- الفتحة: علامة فوق الحرف تنطق «أَ».\n- الضمة: علامة فوق الحرف تنطق «أُ».\n- الكسرة: علامة تحت الحرف تنطق «إِ».\n\nنشاط صغير: خذي حرف القاف. ضعي عليه فتحة فتنطقيه «قَ»، ثم ضمة فتنطقيه «قُ»، ثم كسرة فتنطقيه «قِ». اسمعي كيف يتغيّر الصوت مع كل حركة!",
+      "difficulty": "easy"
+    }
+  ]
+}
