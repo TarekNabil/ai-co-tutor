@@ -73,8 +73,9 @@ log = logging.getLogger("voice_loop")
 # large-v3 chosen over -turbo: child speech has higher WER, accuracy > speed.
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "whisper-large-v3")
 
-# Fast, cheap open model on Groq free tier; plenty for 2–3 sentence answers.
-LLM_MODEL = os.getenv("LLM_MODEL", "llama-3.1-8b-instant")
+# Arabic-focused model; perfect for bilingual tutor (English + Arabic).
+# Fallback options: "openai/gpt-oss-20b" or "qwen/qwen3.8-27b"
+LLM_MODEL = os.getenv("LLM_MODEL", "allam-2-7b")
 
 REQUEST_TIMEOUT_S = 30          # per-request timeout for Groq calls
 HISTORY_CONTEXT_TURNS = 6       # how much chat history the tutor sees
