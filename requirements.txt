@@ -1,0 +1,7 @@
+# st.audio_input requires Streamlit >= 1.31 (the 1.28 floor in the ticket
+# spec predates the widget). 1.31+ also brings the stable audio_input API.
+streamlit>=1.31.0
+# Groq Python SDK: hosted Whisper transcription + LLM chat completions.
+groq>=0.4.0
+# Local dev only: loads GROQ_API_KEY from .env (no-op on Streamlit Cloud).
+python-dotenv>=1.0.0
