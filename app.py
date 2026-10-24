@@ -1,10 +1,15 @@
 """
-Ticket #1 — Voice I/O Integration
+Ticket #1 — Voice I/O Integration  +  Ticket #3 — Streamlit Skeleton
 Maryam's AI Lesson Review Tutor (age 8)
 
 Full voice loop:
     🎤 record  →  📝 Whisper transcription (Groq hosted API)
     →  🧠 Groq LLM tutor response  →  🔊 Web Speech API read-aloud
+
+Ticket #3 assembles the app around that loop: a lesson picker (populated
+from lessons.json, shipped by ticket #2), a kid-friendly sectioned layout,
+and per-lesson session state (switching lessons wipes the chat so contexts
+never bleed across subjects).
 
 Locked design decisions (from TICKETS.md):
   * TTS uses the browser-native Web Speech API (`speechSynthesis`), NOT pyttsx3.
@@ -31,7 +36,7 @@ Streamlit Cloud gotchas found/anticipated during testing:
   * `speechSynthesis.getVoices()` loads asynchronously in Chrome; the speak
     call must wait for `onvoiceschanged` or no voice (esp. Arabic) is found.
 
-Scope: ONLY the voice loop. Lesson picker UI = ticket #2/#3, quiz = #4,
+Scope: voice loop (#1) + lesson picker & page skeleton (#3). Quiz = #4,
 deployment/secrets wiring = #5.
 """
 
@@ -83,8 +88,8 @@ LATENCY_BUDGET_S = 10           # per-turn budget from TICKETS.md (log warning i
 
 LESSONS_PATH = Path(__file__).with_name("lessons.json")
 
-# Placeholder used ONLY until ticket #2 ships lessons.json. Keeping it
-# in-code avoids touching ticket #2's deliverable.
+# Placeholder used ONLY if lessons.json is missing/malformed, so the voice
+# loop stays testable on its own (required fallback from ticket #1).
 PLACEHOLDER_LESSON = {
     "id": "placeholder_math",
     "title": "Addition Basics (placeholder)",
@@ -96,6 +101,10 @@ PLACEHOLDER_LESSON = {
     ),
     "difficulty": "easy",
 }
+
+# Kid-friendly visual cues for the picker dropdown and lesson caption.
+SUBJECT_EMOJI = {"Math": "🔢", "Arabic": "🌙"}
+DIFFICULTY_EMOJI = {"easy": "🌱", "medium": "🌿", "hard": "🌳"}
 
 # --------------------------------------------------------------------------- #
 # Secrets / clients                                                            #
@@ -120,22 +129,32 @@ def get_groq_client(api_key: str) -> Groq:
 
 
 # --------------------------------------------------------------------------- #
-# Lessons (real loader is ticket #2 — this just unblocks the voice loop)       #
+# Lessons (ticket #2 shipped lessons.json; ticket #3 loads the list for UI)    #
 # --------------------------------------------------------------------------- #
 
 
-def load_lesson() -> tuple[dict, str]:
-    """Return (lesson, source_note). Uses lessons.json if ticket #2 landed."""
+def load_lesson_list() -> tuple[list[dict], str]:
+    """Return (lessons, source_note) for the lesson picker.
+
+    Reads lessons.json (ticket #2's deliverable). Falls back to a single
+    placeholder lesson when the file is missing, empty, or malformed, so
+    the app still boots and the voice loop stays testable on its own.
+    Lessons without an id/title are dropped — the picker needs both.
+    """
     if LESSONS_PATH.exists():
         try:
             data = json.loads(LESSONS_PATH.read_text(encoding="utf-8"))
-            lessons = data.get("lessons", [])
+            lessons = [
+                l
+                for l in data.get("lessons", [])
+                if l.get("id") and l.get("title")
+            ]
             if lessons:
-                return lessons[0], f"lessons.json ({len(lessons)} lesson(s))"
+                return lessons, f"lessons.json ({len(lessons)} lessons)"
             log.warning("lessons.json has no lessons; using placeholder")
         except Exception as exc:  # malformed JSON etc.
             log.warning("Could not parse lessons.json (%s); using placeholder", exc)
-    return PLACEHOLDER_LESSON, "placeholder (lessons.json arrives with ticket #2)"
+    return [PLACEHOLDER_LESSON], "placeholder (lessons.json missing)"
 
 
 # --------------------------------------------------------------------------- #
@@ -207,6 +226,7 @@ def init_state() -> None:
     """Per TICKETS.md: chat_history = [{"role", "text", "timestamp"}, ...]."""
     s = st.session_state
     s.setdefault("chat_history", [])
+    s.setdefault("last_lesson_id", None)       # picker change detection (#3)
     s.setdefault("last_audio_hash", None)      # dedup across reruns
     s.setdefault("last_transcription", None)   # for the correction button
     s.setdefault("correction_mode", False)
@@ -392,9 +412,59 @@ def render_tts(text: str, autoplay: bool, nonce: int) -> None:
 # --------------------------------------------------------------------------- #
 
 
+def inject_kid_friendly_css() -> None:
+    """Ticket #3 polish: big readable text (16px+), chunky tappable buttons,
+    high contrast, and bidi-aware paragraphs so Arabic chat/lessons render
+    right-to-left automatically while English stays left-to-right."""
+    st.markdown(
+        """
+        <style>
+          /* Larger base text for young readers. */
+          html, body, .stApp,
+          [data-testid="stMarkdownContainer"] p,
+          [data-testid="stChatMessageContent"] p,
+          [data-testid="stCaptionContainer"] {
+              font-size: 18px !important;
+              line-height: 1.6 !important;
+          }
+          /* Browser picks text direction per paragraph → Arabic renders RTL,
+             English stays LTR, mixed chats look right. */
+          [data-testid="stMarkdownContainer"] p,
+          [data-testid="stChatMessageContent"] p {
+              unicode-bidi: plaintext;
+          }
+          /* Big, bright, rounded buttons: one clear action per tap. */
+          .stButton > button, .stFormSubmitButton > button {
+              font-size: 18px !important;
+              padding: 0.8rem 1.6rem !important;
+              border-radius: 14px !important;
+              background-color: #FFD54F !important;  /* bright yellow */
+              color: #4E342E !important;             /* dark brown text */
+              border: none !important;
+          }
+          /* Roomier labels on the picker, mic widget and inputs. */
+          [data-testid="stSelectbox"] label p,
+          [data-testid="stAudioInput"] label p,
+          [data-testid="stSelectbox"] [data-baseweb="select"] * {
+              font-size: 18px !important;
+          }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main() -> None:
-    st.set_page_config(page_title="Maryam's AI Tutor — Voice Loop", page_icon="🎤")
-    st.title("🎤 Maryam's AI Tutor — Voice Loop (Ticket #1)")
+    # Centered column reads well on both phone and tablet (Ticket #3).
+    st.set_page_config(
+        page_title="Maryam's AI Tutor",
+        page_icon="📚",
+        layout="centered",
+    )
+    inject_kid_friendly_css()
+
+    st.title("📚 Maryam's AI Tutor")
+    st.caption("Pick a lesson, press the microphone, and ask me anything about it! 🎉")
 
     init_state()
 
@@ -409,12 +479,48 @@ def main() -> None:
         st.stop()
     client = get_groq_client(api_key)
 
-    lesson, source_note = load_lesson()
-    st.caption(f"📖 Lesson: **{lesson['title']}** · source: {source_note}")
+    # --- 1. Lesson picker (Ticket #3) ----------------------------------------
+    lessons_list, source_note = load_lesson_list()
+    selected_lesson = st.selectbox(
+        "📖 Pick a lesson:",
+        options=lessons_list,
+        format_func=lambda l: (
+            f"{SUBJECT_EMOJI.get(l.get('subject'), '📘')} "
+            f"{l['title']} ({l.get('subject', '?')})"
+        ),
+        key="lesson_selector",
+    )
 
-    # --- 1. Audio capture (processed BEFORE rendering history so the new ---
-    # ---     turn shows up in this same run)                             ---
-    audio = st.audio_input("🎤 Press the microphone and ask your question")
+    # New lesson = fresh context. Wipe the chat AND the per-turn UI state
+    # (transcription, correction form, queued TTS) so nothing from the old
+    # lesson bleeds into the new one — TICKETS.md: "Clear session history
+    # when lesson changes (avoid cross-lesson confusion)".
+    if st.session_state.last_lesson_id != selected_lesson["id"]:
+        st.session_state.chat_history = []
+        st.session_state.last_transcription = None
+        st.session_state.correction_mode = False
+        st.session_state.pending_tts = None
+        st.session_state.tts_autoplay = False
+        # last_audio_hash is kept ON PURPOSE: the mic widget still holds the
+        # previous clip after a lesson switch, and re-hashing it must NOT
+        # re-transcribe that clip in the new lesson's context.
+        st.session_state.last_lesson_id = selected_lesson["id"]
+
+    lesson = selected_lesson  # from here on, the whole app uses the picked lesson
+    difficulty = lesson.get("difficulty", "easy")
+    st.caption(
+        f"{SUBJECT_EMOJI.get(lesson.get('subject'), '📘')} **{lesson.get('subject', '?')}** · "
+        f"{DIFFICULTY_EMOJI.get(difficulty, '🌱')} {difficulty} · "
+        f"source: {source_note}"
+    )
+
+    st.divider()
+
+    # --- 2. Audio section: mic → transcription → correction -----------------
+    # Audio is processed BEFORE rendering the chat so the new turn shows up
+    # in this same run (Streamlit reruns top-to-bottom on every interaction).
+    st.subheader("🎤 Ask your question")
+    audio = st.audio_input("Press the microphone and ask your question")
     if audio is not None:
         audio_bytes = audio.getvalue()
         if audio_bytes:
@@ -425,17 +531,7 @@ def main() -> None:
                 st.session_state.last_audio_hash = digest
                 process_audio_turn(client, lesson, audio_bytes)
 
-    # --- 2. Chat history ----------------------------------------------------
-    st.subheader("💬 Our chat")
-    if not st.session_state.chat_history:
-        st.write("No questions yet — press the microphone and ask me something! 😊")
-    for msg in st.session_state.chat_history:
-        who = "user" if msg["role"] == "user" else "assistant"
-        name = "Maryam" if who == "user" else "Tutor"
-        with st.chat_message(who):
-            st.markdown(f"**{name}:** {msg['text']}")
-
-    # --- 3. Transcription display + correction button -----------------------
+    # Transcription display + correction button (part of the audio flow).
     if st.session_state.last_transcription and not st.session_state.correction_mode:
         st.info(f'📝 You said: "{st.session_state.last_transcription}"')
         if st.button("🙋‍♀️ That's not what I said!"):
@@ -460,8 +556,21 @@ def main() -> None:
             if process_text_turn(client, lesson, question):
                 st.rerun()
 
-    # --- 4. TTS playback (Web Speech API) ------------------------------------
+    st.divider()
+
+    # --- 3. Chat section ------------------------------------------------------
+    st.subheader("💬 Our chat")
+    if not st.session_state.chat_history:
+        st.write("No questions yet — press the microphone and ask me something! 😊")
+    for msg in st.session_state.chat_history:
+        who = "user" if msg["role"] == "user" else "assistant"
+        name = "Maryam" if who == "user" else "Tutor"
+        with st.chat_message(who):
+            st.markdown(f"**{name}:** {msg['text']}")
+
+    # --- 4. TTS section (Web Speech API) --------------------------------------
     if st.session_state.pending_tts:
+        st.subheader("🔊 Listen to the answer")
         # Autoplay exactly once: the flag is set when a new answer is
         # generated and consumed here (component JS re-runs every rerun).
         autoplay = st.session_state.tts_autoplay
@@ -472,7 +581,9 @@ def main() -> None:
             nonce=st.session_state.pending_tts["nonce"],
         )
 
-    # --- 5. Latency log (debug / post-mortem) --------------------------------
+    st.divider()
+
+    # --- 5. Footer: latency log (debug / post-mortem) --------------------------
     with st.expander("⏱️ Latency log (target < 10 s per turn)"):
         if st.session_state.latency_log:
             st.table(st.session_state.latency_log[-10:])
